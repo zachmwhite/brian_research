@@ -1,0 +1,96 @@
+---
+title: "commongood_risk"
+author: "Zach White"
+date: "March 10, 2018"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+## Part 1
+
+Treat this as simply logistic.  This will be limited because we may not actually be able to accomplish what we want due to because we are interested in the interaction between country and risk policy.
+
+```{r}
+pgg = read.table("PGG_Group_compilation.txt", header = TRUE)
+
+pgg$risk = factor(pgg$risk, levels = c("0%","50%","100%"))
+
+head(pgg)
+```
+
+```{r}
+table(pgg$country, pgg$outcome)
+
+table(pgg$grade, pgg$outcome)
+
+table(pgg$risk, pgg$outcome)
+
+```
+
+Boxplots
+```{r}
+ggplot(data = pgg, aes(x = donationSum)) + geom_histogram(binwidth = 15)
+
+ggplot(data = pgg, aes(x = country, y = donationSum)) + geom_boxplot()
+
+ggplot(data = pgg, aes(x = risk, y = donationSum)) + geom_boxplot()
+```
+
+Mosaic plots
+```{r}
+par(mfrow = c(1,2), mar = c(1.8,1.8,1.3,1.3))
+mosaicplot(table(num.cath$cath1.CHFSEV,num.cath$cath1.GENDER), main = "CHFSEV by Gender", ylab = "Gender", xlab = "CHFSEV")
+mosaicplot(table(num.cath$cath1.CHFSEV, num.cath$cath1.HXSMOKE), main = "CHFSEV by History of Smoking", ylab = "History of Smoking", xlab = "CHFSEV")
+```
+
+
+```{r}
+base_log_mod = glm(outcome~ risk + country + factor(grade) , data = pgg, family = binomial(link = "logit"))
+
+sum_base = summary(base_log_mod)
+
+confint(base_log_mod)
+confint(exp(base_log_mod))
+```
+
+```{r}
+exp(coef(sum_base)[,"Estimate"])
+exp(coef(sum_base)[,"Estimate"]) / (1 + exp(coef(sum_base)[,"Estimate"]) )
+
+
+```
+
+```{r}
+residuals(base_log_mod, type = "deviance")
+```
+
+
+Currently, this is crazy limited.  We probably need to change this a little bit.  The group sizes aren't good enough I don't htink because the sizes just aren't very large.
+
+The results are limited as a result.
+
+Look at the slides for the categorical class.  What are the relevant tests and verification stuff?
+
+Interpret all of the coefficients in context.
+
+Describe the limitations of these results.
+
+Remember log odds interpreations.
+
+Base case: china, 0% risk, grade 1
+
+We are mostly inerested in the interaction, but we are not getting this.
+
+
+
+## Part 2
+
+Treat this as a numerical response.  It might even be normal.  Looks fairly normal
+
+I would look again at how it this works.  This is total number by round.  I don't think this would be easy doing it round by round, but total is definitely more doable.
+
+This might be more of a verification model.  
