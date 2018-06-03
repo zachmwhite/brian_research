@@ -4,6 +4,7 @@
 library(tidyverse)
 library(xlsx)
 library(MASS)
+library(arm)
 
 #########################
 # loading the data
@@ -77,6 +78,16 @@ ggplot(comp.data, aes(x = Condition, y = donation.sum)) + geom_boxplot() +
   ggtitle("Donation Sum by Risk condition") +
   labs(y = "Donation Amount")
 
+ggplot(comp.data, aes(x = donation.sum)) + geom_histogram(binwidth = 2)
+# It actually might be normal.  It looks fairly normal, except at peak at 0 and 24, which makes sense, 
+# those are the maximum and minimum values that someone can donate.
+plot.sum = factor(comp.data$donation.sum, levels = 0:24)
+summation.tab = table(plot.sum)
+barplot(summation.tab,xlab = "Donation Sum",ylab = "Frequency",col = "blue")
+abline(v = mean(comp.data$donation.sum),col = "red",lwd = 2)
+# It will look weird because they can only donate 0,2,4.
+# This complicates the modeling significantly.  I'm not sure exactly how to deal with that.
+
 ########################################################
 # Complete Data Analysis. There could be bias in this case
 ########################################################
@@ -129,11 +140,20 @@ summary(n.base)
 nb.interaction = glm.nb(donation.sum ~ Country + Condition + age + sex + Country:age + Country:sex + age:sex + Condition:age + Condition:sex)
 summary(nb.interaction)
 
+# I'm not super confident in the interpretation of binomial data.
 ########################################################
 # Bayesian Estimation
 ########################################################
 # 
 # 
+bayes.base = bayesglm(donation.sum ~ Country + Condition + age + sex,data = comp.data, family = poisson(link = log))
+
+bayes.interaction = bayesglm(donation.sum ~ Country + Condition + age + sex + Country:age + Country:sex + age:sex + Condition:age + Condition:sex,
+                             family = poisson(link = log))
+
+# Big questions.  Are the uncertain ones just half risk?
+#
+
 
 ########################################################
 # The plots and everything?
